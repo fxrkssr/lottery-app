@@ -702,27 +702,11 @@ function showDetail(idx) {
       <div class="sum-row"><span class="label">หักทั้งหมด</span><span class="val red">${fmt(c.allDeduct)}</span></div>
       <div class="sum-row total"><span class="label">คงเหลือ</span><span class="val ${c.remaining>=0?'green':'red'}">${fmt(c.remaining)}</span></div>
     </div>
-    <div style="height:14px"></div>
-    <button class="btn btn-danger" onclick="deletePeriod(${idx})">🗑 ลบงวดนี้</button>`
+    `
 
   document.getElementById('modalBd').classList.add('open')
 }
 
-async function deletePeriod(idx) {
-  if (!confirm('ลบงวดนี้หรือไม่?')) return
-  const p = APP.periods[idx]
-  showLoader('กำลังลบ...')
-  try {
-    await apiFetch('/api/periods/' + p.id, { method: 'DELETE' })
-    APP.periods.splice(idx, 1)
-    closeModal()
-    renderHistory()
-  } catch (e) {
-    alert('เกิดข้อผิดพลาด: ' + e.message)
-  } finally {
-    hideLoader()
-  }
-}
 
 function closeModal() { document.getElementById('modalBd').classList.remove('open') }
 function closeModalBg(e) { if (e.target === document.getElementById('modalBd')) closeModal() }
