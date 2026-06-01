@@ -285,21 +285,21 @@ body {
   <div class="card">
     <div class="card-title">ตัวถูก (กรอกเฉพาะงวดที่มีถูก)</div>
     <div class="win-grid">
-      <div class="win-item"><label>สองตัวบน/ล่าง</label><input type="number" id="wSongTua" value="0" min="0" oninput="updateSummary()"></div>
-      <div class="win-item"><label>สองอั้น</label><input type="number" id="wSongAn" value="0" min="0" oninput="updateSummary()"></div>
-      <div class="win-item"><label>โต๊ด</label><input type="number" id="wTod" value="0" min="0" oninput="updateSummary()"></div>
-      <div class="win-item"><label>สามตรง</label><input type="number" id="wSam" value="0" min="0" oninput="updateSummary()"></div>
-      <div class="win-item"><label>วิ่งบน/ล่าง</label><input type="number" id="wWing" value="0" min="0" oninput="updateSummary()"></div>
-      <div class="win-item"><label>อื่นๆ</label><input type="number" id="wOther" value="0" min="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>สองตัวบน/ล่าง</label><input type="number" id="wSongTua" min="0" placeholder="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>สองอั้น</label><input type="number" id="wSongAn" min="0" placeholder="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>โต๊ด</label><input type="number" id="wTod" min="0" placeholder="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>สามตรง</label><input type="number" id="wSam" min="0" placeholder="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>วิ่งบน/ล่าง</label><input type="number" id="wWing" min="0" placeholder="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>อื่นๆ</label><input type="number" id="wOther" min="0" placeholder="0" oninput="updateSummary()"></div>
     </div>
   </div>
   <div class="card">
     <div class="card-title">รายการหัก / เบิก</div>
     <div class="deduct-grid">
-      <div class="deduct-item"><label>ค่าแรง</label><input type="number" id="dLabor" value="0" min="0" oninput="updateSummary()"></div>
-      <div class="deduct-item"><label>คืน</label><input type="number" id="dRefund" value="0" min="0" oninput="updateSummary()"></div>
-      <div class="deduct-item"><label>เบิก</label><input type="number" id="dWithdraw" value="0" min="0" oninput="updateSummary()"></div>
-      <div class="deduct-item"><label>อื่นๆ</label><input type="number" id="dOther" value="0" min="0" oninput="updateSummary()"></div>
+      <div class="deduct-item"><label>ค่าแรง</label><input type="number" id="dLabor" min="0" placeholder="0" oninput="updateSummary()"></div>
+      <div class="deduct-item"><label>คืน</label><input type="number" id="dRefund" min="0" placeholder="0" oninput="updateSummary()"></div>
+      <div class="deduct-item"><label>เบิก</label><input type="number" id="dWithdraw" min="0" placeholder="0" oninput="updateSummary()"></div>
+      <div class="deduct-item"><label>อื่นๆ</label><input type="number" id="dOther" min="0" placeholder="0" oninput="updateSummary()"></div>
     </div>
   </div>
   <div class="live-summary">
@@ -535,7 +535,7 @@ function buildBetTable() {
   document.getElementById('betBody').innerHTML = agents.map((a, i) => `
     <div class="agent-row">
       <div class="agent-row-name">${a}</div>
-      <input class="bet-input" type="number" min="0" id="bet${i}" value="0" inputmode="numeric" oninput="onBetChange(${i})">
+      <input class="bet-input" type="number" min="0" id="bet${i}" placeholder="0" inputmode="numeric" oninput="onBetChange(${i})">
       <div class="agent-row-72" id="b72_${i}">0</div>
     </div>`).join('')
 }
@@ -578,10 +578,10 @@ function resetNewForm() {
   document.getElementById('newDate').value = ''
   const agents = APP.settings.agents || DEFAULT_AGENTS
   agents.forEach((_, i) => {
-    const el = document.getElementById('bet'+i); if (el) el.value = 0
+    const el = document.getElementById('bet'+i); if (el) el.value = ''
     const e72 = document.getElementById('b72_'+i); if (e72) e72.textContent = '0'
   })
-  ;[...WIN_IDS, ...DED_IDS].forEach(id => { const el = document.getElementById(id); if (el) el.value = 0 })
+  ;[...WIN_IDS, ...DED_IDS].forEach(id => { const el = document.getElementById(id); if (el) el.value = '' })
   updateSummary()
 }
 
@@ -664,8 +664,12 @@ function showDetail(idx) {
 
   const betRows = agents.filter(a => (p.bets?.[a]||0) > 0).map(a => {
     const v = +p.bets[a]
-    return `<tr><td>${a}</td><td>${fmtN(v*0.75)}</td><td>${fmtN(v*0.72)}</td><td>${fmtN(v)}</td></tr>`
-  }).join('') || `<tr><td colspan="4" style="color:#9ca3af;text-align:center">ไม่มีข้อมูล</td></tr>`
+    return `<div class="agent-row">
+      <div class="agent-row-name">${a}</div>
+      <div class="agent-row-72">${fmtN(v*0.72)}</div>
+      <div style="width:100px;text-align:right;font-size:15px;font-weight:600">${fmtN(v)}</div>
+    </div>`
+  }).join('') || `<div style="color:#9ca3af;font-size:13px;padding:8px 0">ไม่มีข้อมูล</div>`
 
   const winRows = WIN_KEYS.map(k => {
     const v = +(p.winTypes?.[k]||0)
@@ -680,12 +684,16 @@ function showDetail(idx) {
   document.getElementById('modalBody').innerHTML = `
     <div class="modal-title">งวด ${p.date}</div>
     <div class="section-label">ยอดรับแต่ละคน</div>
-    <div class="table-scroll">
-      <table class="detail-table">
-        <thead><tr><th>ชื่อ</th><th>75%</th><th>72%</th><th>ยอดรับ</th></tr></thead>
-        <tbody>${betRows}</tbody>
-        <tr class="detail-total"><td>รวม</td><td>${fmtN(c.totalBet*0.75)}</td><td style="color:#059669">${fmtN(c.total72)}</td><td>${fmtN(c.totalBet)}</td></tr>
-      </table>
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;padding-bottom:6px;border-bottom:2px solid #e5e7eb;margin-bottom:4px">
+      <div style="font-size:11px;color:#9ca3af;font-weight:700">ชื่อ</div>
+      <div style="font-size:11px;color:#059669;font-weight:700;min-width:56px;text-align:right">72%</div>
+      <div style="font-size:11px;color:#9ca3af;font-weight:700;width:100px;text-align:right">ยอดรับ</div>
+    </div>
+    ${betRows}
+    <div class="bet-total-row">
+      <div class="bet-total-label">รวมทั้งหมด</div>
+      <div class="bet-total-72">${fmtN(c.total72)}</div>
+      <div class="bet-total-bet">${fmtN(c.totalBet)}</div>
     </div>
     <div class="divider"></div>
     <div class="section-label">ตัวถูก</div>${winRows}
