@@ -80,24 +80,37 @@ body {
 .form-input:focus { outline: none; border-color: #1d4ed8; box-shadow: 0 0 0 3px rgba(29,78,216,0.12); }
 .form-hint { font-size: 11px; color: #9ca3af; margin-top: 3px; }
 
-.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.bet-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.bet-table th {
-  background: #f9fafb; padding: 8px 6px; text-align: center;
-  font-size: 11px; color: #6b7280; font-weight: 700;
-  border-bottom: 2px solid #e5e7eb; white-space: nowrap;
+/* Agent bet rows — mobile-friendly 3-column */
+.agent-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
 }
-.bet-table th:first-child { text-align: left; padding-left: 4px; }
-.bet-table td { padding: 5px 6px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
-.agent-name { font-weight: 600; white-space: nowrap; font-size: 13px; }
+.agent-row:last-child { border-bottom: none; }
+.agent-row-name { font-weight: 700; font-size: 14px; color: #1f2937; }
+.agent-row-72 { font-size: 12px; color: #059669; font-weight: 600; min-width: 56px; text-align: right; }
 .bet-input {
-  width: 82px; border: 1.5px solid #e5e7eb; border-radius: 8px;
-  padding: 6px 8px; font-size: 14px; text-align: right;
+  width: 100px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+  padding: 8px 10px; font-size: 15px; text-align: right;
   font-family: 'Sarabun', sans-serif;
 }
 .bet-input:focus { outline: none; border-color: #1d4ed8; }
-.cell-72 { text-align: right; color: #059669; font-weight: 600; font-size: 13px; min-width: 70px; }
-.total-row td { background: #f8faff; font-weight: 700; border-top: 2px solid #e5e7eb !important; }
+.bet-total-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0 0;
+  border-top: 2px solid #e5e7eb;
+  margin-top: 4px;
+  font-weight: 700;
+}
+.bet-total-label { font-size: 13px; color: #6b7280; }
+.bet-total-72 { font-size: 14px; color: #059669; font-weight: 700; min-width: 56px; text-align: right; }
+.bet-total-bet { font-size: 14px; font-weight: 700; width: 100px; text-align: right; }
 
 .win-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .win-item label { display: block; font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 4px; }
@@ -257,19 +270,16 @@ body {
   </div>
   <div class="card">
     <div class="card-title">ยอดรับแต่ละคน</div>
-    <div class="table-scroll">
-      <table class="bet-table">
-        <thead><tr><th>ชื่อ</th><th>ยอดรับ</th><th>75%</th><th>72%</th></tr></thead>
-        <tbody id="betBody"></tbody>
-        <tfoot>
-          <tr class="total-row">
-            <td>รวม</td>
-            <td style="text-align:right;font-size:13px" id="totBet">0</td>
-            <td style="text-align:right;color:#6b7280;font-size:13px" id="tot75">0</td>
-            <td class="cell-72" id="tot72">0</td>
-          </tr>
-        </tfoot>
-      </table>
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;padding-bottom:6px;border-bottom:2px solid #e5e7eb;margin-bottom:4px">
+      <div style="font-size:11px;color:#9ca3af;font-weight:700">ชื่อ</div>
+      <div style="font-size:11px;color:#9ca3af;font-weight:700;width:100px;text-align:right">ยอดรับ</div>
+      <div style="font-size:11px;color:#059669;font-weight:700;min-width:56px;text-align:right">72%</div>
+    </div>
+    <div id="betBody"></div>
+    <div class="bet-total-row">
+      <div class="bet-total-label">รวมทั้งหมด</div>
+      <div class="bet-total-bet" id="totBet">0</div>
+      <div class="bet-total-72" id="tot72">0</div>
     </div>
   </div>
   <div class="card">
@@ -523,17 +533,15 @@ function ms(label, value, color) {
 function buildBetTable() {
   const agents = APP.settings.agents || DEFAULT_AGENTS
   document.getElementById('betBody').innerHTML = agents.map((a, i) => `
-    <tr>
-      <td class="agent-name">${a}</td>
-      <td><input class="bet-input" type="number" min="0" id="bet${i}" value="0" oninput="onBetChange(${i})"></td>
-      <td style="text-align:right;color:#9ca3af;font-size:13px" id="b75_${i}">0</td>
-      <td class="cell-72" id="b72_${i}">0</td>
-    </tr>`).join('')
+    <div class="agent-row">
+      <div class="agent-row-name">${a}</div>
+      <input class="bet-input" type="number" min="0" id="bet${i}" value="0" inputmode="numeric" oninput="onBetChange(${i})">
+      <div class="agent-row-72" id="b72_${i}">0</div>
+    </div>`).join('')
 }
 
 function onBetChange(i) {
   const v = +document.getElementById('bet'+i).value || 0
-  document.getElementById('b75_'+i).textContent = fmtN(v * 0.75)
   document.getElementById('b72_'+i).textContent = fmtN(v * 0.72)
   updateSummary()
 }
@@ -546,7 +554,6 @@ function updateSummary() {
     totalBet += v; total72 += v * 0.72
   })
   document.getElementById('totBet').textContent = fmtN(totalBet)
-  document.getElementById('tot75').textContent  = fmtN(totalBet * 0.75)
   document.getElementById('tot72').textContent  = fmtN(total72)
 
   const totalWin    = WIN_IDS.reduce((s,id) => s + (+document.getElementById(id)?.value||0), 0)
@@ -572,7 +579,6 @@ function resetNewForm() {
   const agents = APP.settings.agents || DEFAULT_AGENTS
   agents.forEach((_, i) => {
     const el = document.getElementById('bet'+i); if (el) el.value = 0
-    const e75 = document.getElementById('b75_'+i); if (e75) e75.textContent = '0'
     const e72 = document.getElementById('b72_'+i); if (e72) e72.textContent = '0'
   })
   ;[...WIN_IDS, ...DED_IDS].forEach(id => { const el = document.getElementById(id); if (el) el.value = 0 })
