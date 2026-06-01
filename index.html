@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บัญชีหวย</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: #f3f4f6;
+  color: #1f2937;
+  font-size: 15px;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100%;
+}
+.header {
+  background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+  color: white;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.header h1 { font-size: 18px; font-weight: 700; }
+.header-sub { font-size: 12px; opacity: 0.75; }
+
+.page { display: none; padding: 12px 12px 90px; }
+.page.active { display: block; }
+
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: white; border-top: 1px solid #e5e7eb;
+  display: flex; z-index: 50;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+}
+.nav-btn {
+  flex: 1; padding: 9px 4px 11px; text-align: center; cursor: pointer;
+  color: #9ca3af; font-size: 10px; font-family: 'Sarabun', sans-serif;
+  border: none; background: none;
+}
+.nav-btn.active { color: #1d4ed8; }
+.nav-btn .nav-icon { font-size: 20px; display: block; margin-bottom: 1px; }
+
+.card { background: white; border-radius: 14px; padding: 15px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+.card-title { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+
+.balance-card {
+  background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+  color: white; border-radius: 18px; padding: 20px; margin-bottom: 12px;
+  box-shadow: 0 4px 16px rgba(29,78,216,0.3);
+}
+.balance-label { font-size: 12px; opacity: 0.8; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.balance-amount { font-size: 38px; font-weight: 700; margin: 6px 0 4px; letter-spacing: -1px; }
+.balance-note { font-size: 12px; opacity: 0.7; }
+
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.stat-card { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.stat-label { font-size: 11px; color: #9ca3af; font-weight: 600; }
+.stat-value { font-size: 19px; font-weight: 700; margin-top: 3px; }
+.stat-value.blue { color: #1d4ed8; }
+.stat-value.red { color: #dc2626; }
+.stat-value.green { color: #059669; }
+
+.form-group { margin-bottom: 13px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+.form-input {
+  width: 100%; border: 1.5px solid #d1d5db; border-radius: 10px;
+  padding: 10px 12px; font-size: 15px; font-family: 'Sarabun', sans-serif;
+  color: #1f2937; background: white; -webkit-appearance: none;
+}
+.form-input:focus { outline: none; border-color: #1d4ed8; box-shadow: 0 0 0 3px rgba(29,78,216,0.12); }
+.form-hint { font-size: 11px; color: #9ca3af; margin-top: 3px; }
+
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.bet-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.bet-table th {
+  background: #f9fafb; padding: 8px 6px; text-align: center;
+  font-size: 11px; color: #6b7280; font-weight: 700;
+  border-bottom: 2px solid #e5e7eb; white-space: nowrap;
+}
+.bet-table th:first-child { text-align: left; padding-left: 4px; }
+.bet-table td { padding: 5px 6px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+.agent-name { font-weight: 600; white-space: nowrap; font-size: 13px; }
+.bet-input {
+  width: 82px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+  padding: 6px 8px; font-size: 14px; text-align: right;
+  font-family: 'Sarabun', sans-serif;
+}
+.bet-input:focus { outline: none; border-color: #1d4ed8; }
+.cell-72 { text-align: right; color: #059669; font-weight: 600; font-size: 13px; min-width: 70px; }
+.total-row td { background: #f8faff; font-weight: 700; border-top: 2px solid #e5e7eb !important; }
+
+.win-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.win-item label { display: block; font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 4px; }
+.win-item input {
+  width: 100%; border: 1.5px solid #fecaca; border-radius: 9px;
+  padding: 9px 10px; font-size: 15px; text-align: right;
+  font-family: 'Sarabun', sans-serif; background: #fff5f5;
+}
+.win-item input:focus { outline: none; border-color: #dc2626; background: white; }
+
+.deduct-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.deduct-item label { display: block; font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 4px; }
+.deduct-item input {
+  width: 100%; border: 1.5px solid #d1d5db; border-radius: 9px;
+  padding: 9px 10px; font-size: 15px; text-align: right;
+  font-family: 'Sarabun', sans-serif;
+}
+.deduct-item input:focus { outline: none; border-color: #1d4ed8; }
+
+.live-summary { background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 15px; }
+.sum-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 14px; }
+.sum-row .label { color: #4b5563; }
+.sum-row .val { font-weight: 600; }
+.sum-row .val.green { color: #059669; }
+.sum-row .val.red { color: #dc2626; }
+.sum-row.divider-row { border-top: 1px dashed #bfdbfe; margin-top: 6px; padding-top: 10px; }
+.sum-row.total { border-top: 2px solid #93c5fd; margin-top: 6px; padding-top: 10px; font-size: 17px; font-weight: 700; }
+.sum-row.total .label { color: #1e40af; font-weight: 700; }
+
+.btn {
+  display: block; width: 100%; padding: 13px; border-radius: 12px;
+  font-size: 16px; font-weight: 700; font-family: 'Sarabun', sans-serif;
+  cursor: pointer; border: none; text-align: center; margin-bottom: 8px;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: #1d4ed8; color: white; }
+.btn-success { background: #059669; color: white; }
+.btn-danger  { background: #dc2626; color: white; }
+.btn-outline { background: white; color: #1d4ed8; border: 1.5px solid #1d4ed8; }
+
+.period-card {
+  background: white; border-radius: 14px; padding: 14px 15px; margin-bottom: 9px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer;
+}
+.period-date { font-size: 17px; font-weight: 700; }
+.period-meta { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+.period-right { text-align: right; }
+.period-balance { font-size: 19px; font-weight: 700; color: #1d4ed8; }
+.period-balance.red { color: #dc2626; }
+.period-arrow { color: #d1d5db; font-size: 18px; margin-left: 8px; }
+
+.modal-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  z-index: 100; align-items: flex-end;
+}
+.modal-backdrop.open { display: flex; }
+.modal-sheet {
+  background: white; border-radius: 22px 22px 0 0; padding: 8px 16px 30px;
+  width: 100%; max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.modal-handle { width: 36px; height: 4px; background: #e5e7eb; border-radius: 2px; margin: 10px auto 18px; }
+.modal-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+
+.agent-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+.agent-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #eff6ff; color: #1d4ed8; border-radius: 20px; padding: 6px 12px;
+  font-size: 14px; font-weight: 600;
+}
+.chip-del { background: none; border: none; color: #93c5fd; cursor: pointer; font-size: 17px; line-height: 1; padding: 0; }
+.chip-del:hover { color: #dc2626; }
+
+.divider { height: 1px; background: #f3f4f6; margin: 12px 0; }
+.empty-state { text-align: center; padding: 50px 20px; color: #9ca3af; }
+.empty-icon { font-size: 52px; margin-bottom: 12px; }
+.section-label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 8px; }
+.add-row { display: flex; gap: 8px; margin-top: 4px; }
+.add-row .form-input { flex: 1; }
+.add-btn { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 10px 16px; font-family: 'Sarabun',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+
+.detail-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 14px; }
+.detail-table th { background: #f9fafb; padding: 7px 8px; font-size: 11px; color: #6b7280; font-weight: 700; border-bottom: 2px solid #e5e7eb; text-align: right; }
+.detail-table th:first-child { text-align: left; }
+.detail-table td { padding: 6px 8px; border-bottom: 1px solid #f3f4f6; text-align: right; }
+.detail-table td:first-child { text-align: left; font-weight: 600; }
+.detail-table .detail-total td { background: #f8faff; font-weight: 700; border-top: 2px solid #e5e7eb; }
+
+/* Loading */
+.loader-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.75);
+  z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+}
+.loader-overlay.show { display: flex; }
+.spinner { width: 36px; height: 36px; border: 4px solid #bfdbfe; border-top-color: #1d4ed8; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { font-size: 14px; color: #6b7280; font-weight: 600; }
+
+/* API banner */
+.api-banner {
+  background: #fef3c7; border: 1.5px solid #f59e0b; border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 12px; font-size: 13px; color: #92400e;
+}
+.api-banner a { color: #1d4ed8; font-weight: 700; text-decoration: none; }
+
+.sync-badge { font-size: 11px; background: #d1fae5; color: #065f46; border-radius: 6px; padding: 2px 7px; font-weight: 700; }
+.sync-badge.err { background: #fee2e2; color: #991b1b; }
+</style>
+</head>
+<body>
+
+<div class="loader-overlay" id="loaderOverlay">
+  <div class="spinner"></div>
+  <div class="loader-text" id="loaderText">กำลังโหลด...</div>
+</div>
+
+<div class="header">
+  <div><h1>📒 บัญชีหวย</h1></div>
+  <div style="text-align:right">
+    <div class="header-sub" id="headerBalance">คงเหลือ: ฿0</div>
+    <div id="syncBadge" class="sync-badge" style="display:none">✓ sync</div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="page active" id="pageHome">
+  <div id="apiBanner" class="api-banner" style="display:none">
+    ⚠️ ยังไม่ได้ตั้งค่า API URL — ไปที่ <a onclick="switchPage('Settings')">⚙️ ตั้งค่า</a> แล้วกรอก Worker URL ก่อน
+  </div>
+  <div class="balance-card">
+    <div class="balance-label">ยอดคงเหลือปัจจุบัน</div>
+    <div class="balance-amount" id="homeBalance">฿0</div>
+    <div class="balance-note" id="homeNote">กำลังโหลด...</div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">จำนวนงวด</div><div class="stat-value blue" id="homeTotalPeriods">0</div></div>
+    <div class="stat-card"><div class="stat-label">ยอดรับรวม</div><div class="stat-value" id="homeTotalBets">฿0</div></div>
+    <div class="stat-card"><div class="stat-label">ตัวถูกรวม</div><div class="stat-value red" id="homeTotalWin">฿0</div></div>
+    <div class="stat-card"><div class="stat-label">กำไรสุทธิ</div><div class="stat-value green" id="homeTotalProfit">฿0</div></div>
+  </div>
+  <div id="latestCard" style="display:none">
+    <div class="section-label">งวดล่าสุด</div>
+    <div class="card" id="latestCardContent"></div>
+  </div>
+  <button class="btn btn-primary" onclick="switchPage('New')">＋ เพิ่มงวดใหม่</button>
+</div>
+
+<!-- NEW PERIOD -->
+<div class="page" id="pageNew">
+  <div class="card">
+    <div class="card-title">ชื่องวด</div>
+    <div class="form-group" style="margin-bottom:0">
+      <input type="text" class="form-input" id="newDate" placeholder="เช่น 1 มิย, 16 มิย">
+      <div class="form-hint">งวด 1 = วันที่ 1 ของเดือน, งวด 16 = วันที่ 16 ของเดือน</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">ยอดรับแต่ละคน</div>
+    <div class="table-scroll">
+      <table class="bet-table">
+        <thead><tr><th>ชื่อ</th><th>ยอดรับ</th><th>75%</th><th>72%</th></tr></thead>
+        <tbody id="betBody"></tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td>รวม</td>
+            <td style="text-align:right;font-size:13px" id="totBet">0</td>
+            <td style="text-align:right;color:#6b7280;font-size:13px" id="tot75">0</td>
+            <td class="cell-72" id="tot72">0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">ตัวถูก (กรอกเฉพาะงวดที่มีถูก)</div>
+    <div class="win-grid">
+      <div class="win-item"><label>สองตัวบน/ล่าง</label><input type="number" id="wSongTua" value="0" min="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>สองอั้น</label><input type="number" id="wSongAn" value="0" min="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>โต๊ด</label><input type="number" id="wTod" value="0" min="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>สามตรง</label><input type="number" id="wSam" value="0" min="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>วิ่งบน/ล่าง</label><input type="number" id="wWing" value="0" min="0" oninput="updateSummary()"></div>
+      <div class="win-item"><label>อื่นๆ</label><input type="number" id="wOther" value="0" min="0" oninput="updateSummary()"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">รายการหัก / เบิก</div>
+    <div class="deduct-grid">
+      <div class="deduct-item"><label>ค่าแรง</label><input type="number" id="dLabor" value="0" min="0" oninput="updateSummary()"></div>
+      <div class="deduct-item"><label>คืน</label><input type="number" id="dRefund" value="0" min="0" oninput="updateSummary()"></div>
+      <div class="deduct-item"><label>เบิก</label><input type="number" id="dWithdraw" value="0" min="0" oninput="updateSummary()"></div>
+      <div class="deduct-item"><label>อื่นๆ</label><input type="number" id="dOther" value="0" min="0" oninput="updateSummary()"></div>
+    </div>
+  </div>
+  <div class="live-summary">
+    <div class="card-title" style="margin-bottom:10px">สรุปงวดนี้</div>
+    <div class="sum-row"><span class="label">ยอดเก่า</span><span class="val" id="sOld">฿0</span></div>
+    <div class="sum-row"><span class="label">ยอดใหม่ (72%)</span><span class="val green" id="sNew">฿0</span></div>
+    <div class="sum-row"><span class="label">รวม</span><span class="val" id="sGrand">฿0</span></div>
+    <div class="sum-row divider-row"><span class="label">ตัวถูกรวม</span><span class="val red" id="sWin">฿0</span></div>
+    <div class="sum-row"><span class="label">หักค่าแรง + คืน + เบิก + อื่นๆ</span><span class="val red" id="sDeduct">฿0</span></div>
+    <div class="sum-row"><span class="label">หักทั้งหมด</span><span class="val red" id="sAllDeduct">฿0</span></div>
+    <div class="sum-row total"><span class="label">คงเหลือ</span><span class="val" id="sRemain">฿0</span></div>
+  </div>
+  <div style="height:12px"></div>
+  <button class="btn btn-success" id="btnSave" onclick="savePeriod()">💾 บันทึกงวดนี้</button>
+</div>
+
+<!-- HISTORY -->
+<div class="page" id="pageHistory">
+  <div id="histList"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="pageSettings">
+  <div class="card">
+    <div class="card-title">🔗 Worker API URL</div>
+    <div class="form-group" style="margin-bottom:6px">
+      <input type="url" class="form-input" id="sApiUrl" placeholder="https://lottery-worker.YOUR_NAME.workers.dev">
+      <div class="form-hint">URL ของ Cloudflare Worker ที่ deploy แล้ว</div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:6px" onclick="testAndSaveApiUrl()">✓ บันทึก URL และทดสอบ</button>
+  </div>
+  <div class="card">
+    <div class="card-title">ยอดเริ่มต้น (ก่อนงวดแรก)</div>
+    <div class="form-group" style="margin-bottom:6px">
+      <input type="number" class="form-input" id="sInitBal" placeholder="0">
+      <div class="form-hint">ยอดคงเหลือที่ติดมาก่อนเริ่มบันทึกในแอปนี้</div>
+    </div>
+    <button class="btn btn-outline" onclick="saveSettingsToAPI()">บันทึกยอดเริ่มต้น</button>
+  </div>
+  <div class="card">
+    <div class="card-title">รายชื่อ Agent</div>
+    <div class="agent-chips" id="agentChips"></div>
+    <div class="add-row">
+      <input type="text" class="form-input" id="newAgentInput" placeholder="ชื่อ agent ใหม่..." style="font-size:14px;padding:9px 11px">
+      <button class="add-btn" onclick="addAgent()">+ เพิ่ม</button>
+    </div>
+    <button class="btn btn-outline" style="margin-top:10px" onclick="saveSettingsToAPI()">💾 บันทึกรายชื่อ</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="navHome" onclick="switchPage('Home')"><span class="nav-icon">🏠</span>หน้าหลัก</button>
+  <button class="nav-btn" id="navNew" onclick="switchPage('New')"><span class="nav-icon">✏️</span>งวดใหม่</button>
+  <button class="nav-btn" id="navHistory" onclick="switchPage('History')"><span class="nav-icon">📋</span>ประวัติ</button>
+  <button class="nav-btn" id="navSettings" onclick="switchPage('Settings')"><span class="nav-icon">⚙️</span>ตั้งค่า</button>
+</nav>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBd" onclick="closeModalBg(event)">
+  <div class="modal-sheet"><div class="modal-handle"></div><div id="modalBody"></div></div>
+</div>
+
+<script>
+// =============================================
+//  CONSTANTS
+// =============================================
+const DEFAULT_AGENTS = ['แม่','ซ้อ','พี่เก่ง','พี่วุ้น','พี่รัตน์','พี่นิค','พี่บอย','พูน','ราม','เพิ่ม','อิม','คอ']
+const WIN_KEYS = ['สองตัว','สองอั้น','โต๊ด','สามตรง','วิ่งบน','อื่นๆ']
+const WIN_IDS  = ['wSongTua','wSongAn','wTod','wSam','wWing','wOther']
+const DED_KEYS = ['ค่าแรง','คืน','เบิก','อื่นๆ']
+const DED_IDS  = ['dLabor','dRefund','dWithdraw','dOther']
+
+// =============================================
+//  STATE (in-memory cache)
+// =============================================
+let APP = {
+  settings: { agents: [...DEFAULT_AGENTS], initialBalance: 0 },
+  periods: [],
+  apiUrl: '',   // stored in localStorage only
+}
+
+function getApiUrl() { return localStorage.getItem('lotto_api_url') || '' }
+function setApiUrl(u) { localStorage.setItem('lotto_api_url', u); APP.apiUrl = u; }
+
+// =============================================
+//  LOADER
+// =============================================
+function showLoader(text = 'กำลังโหลด...') {
+  document.getElementById('loaderText').textContent = text
+  document.getElementById('loaderOverlay').classList.add('show')
+}
+function hideLoader() { document.getElementById('loaderOverlay').classList.remove('show') }
+
+function setSyncBadge(ok) {
+  const el = document.getElementById('syncBadge')
+  el.style.display = 'inline-block'
+  el.textContent = ok ? '✓ sync' : '✗ offline'
+  el.className = 'sync-badge' + (ok ? '' : ' err')
+}
+
+// =============================================
+//  API CALLS
+// =============================================
+async function apiFetch(path, options = {}) {
+  const base = getApiUrl()
+  if (!base) throw new Error('ยังไม่ได้ตั้งค่า API URL')
+  const r = await fetch(base + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  })
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+  return r.json()
+}
+
+async function loadData() {
+  showLoader('กำลังดึงข้อมูลจาก Google Sheets...')
+  try {
+    const data = await apiFetch('/api/data')
+    APP.settings = data.settings
+    APP.periods  = data.periods
+    setSyncBadge(true)
+  } catch (e) {
+    console.error(e)
+    setSyncBadge(false)
+    if (!getApiUrl()) {
+      document.getElementById('apiBanner').style.display = 'block'
+    }
+  } finally {
+    hideLoader()
+  }
+}
+
+// =============================================
+//  CALC
+// =============================================
+function calcPeriod(p, prevBalance) {
+  const bets = p.bets || {}
+  let totalBet = 0, total72 = 0
+  Object.values(bets).forEach(v => { const n = +v||0; totalBet += n; total72 += n * 0.72 })
+  const totalWin    = WIN_KEYS.reduce((s,k) => s + (+( p.winTypes?.[k]||0)), 0)
+  const totalDeduct = DED_KEYS.reduce((s,k) => s + (+( p.deduct?.[k]  ||0)), 0)
+  const grandTotal  = prevBalance + total72
+  const allDeduct   = totalWin + totalDeduct
+  return { totalBet, total72, totalWin, totalDeduct, allDeduct, prevBalance, grandTotal, remaining: grandTotal - allDeduct }
+}
+
+function runningBalance(upTo) {
+  let bal = +APP.settings.initialBalance || 0
+  const end = upTo === undefined ? APP.periods.length : upTo
+  for (let i = 0; i < end; i++) bal = calcPeriod(APP.periods[i], bal).remaining
+  return bal
+}
+
+// =============================================
+//  FORMAT
+// =============================================
+function fmt(n) {
+  return (n < 0 ? '-' : '') + '฿' + Math.abs(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+function fmtN(n) {
+  return (+n||0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+// =============================================
+//  NAVIGATION
+// =============================================
+async function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
+  document.getElementById('page' + name).classList.add('active')
+  document.getElementById('nav' + name).classList.add('active')
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (name === 'Home')     { await loadData(); renderHome() }
+  if (name === 'New')      { await loadData(); buildBetTable(); updateSummary() }
+  if (name === 'History')  { await loadData(); renderHistory() }
+  if (name === 'Settings') renderSettings()
+}
+
+// =============================================
+//  HOME
+// =============================================
+function renderHome() {
+  const periods = APP.periods || []
+  const bal = runningBalance()
+  document.getElementById('homeBalance').textContent = fmt(bal)
+  document.getElementById('headerBalance').textContent = 'คงเหลือ: ' + fmt(bal)
+  document.getElementById('homeTotalPeriods').textContent = periods.length + ' งวด'
+
+  let totalBet = 0, totalWin = 0, netProfit = 0, prevBal = +APP.settings.initialBalance || 0
+  periods.forEach(p => {
+    const c = calcPeriod(p, prevBal)
+    totalBet  += c.totalBet
+    totalWin  += c.totalWin
+    netProfit += c.total72 - c.allDeduct
+    prevBal    = c.remaining
+  })
+  document.getElementById('homeTotalBets').textContent   = fmt(totalBet)
+  document.getElementById('homeTotalWin').textContent    = fmt(totalWin)
+  document.getElementById('homeTotalProfit').textContent = fmt(netProfit)
+  document.getElementById('homeTotalProfit').className   = 'stat-value ' + (netProfit >= 0 ? 'green' : 'red')
+
+  if (periods.length === 0) {
+    document.getElementById('homeNote').textContent = getApiUrl() ? 'ยังไม่มีข้อมูล — กด "เพิ่มงวดใหม่"' : 'ตั้งค่า API URL ก่อนนะครับ'
+    document.getElementById('latestCard').style.display = 'none'
+    return
+  }
+  const last = periods[periods.length - 1]
+  const lc = calcPeriod(last, runningBalance(periods.length - 1))
+  document.getElementById('homeNote').textContent = 'งวดล่าสุด: ' + last.date
+  document.getElementById('latestCard').style.display = 'block'
+  document.getElementById('latestCardContent').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:17px;font-weight:700">งวด ${last.date}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      ${ms('ยอดรับ',fmt(lc.totalBet),'')} ${ms('ยอด72%',fmt(lc.total72),'green')} ${ms('ตัวถูก',fmt(lc.totalWin),lc.totalWin>0?'red':'')}
+      ${ms('ยอดเก่า',fmt(lc.prevBalance),'')} ${ms('หักรวม',fmt(lc.allDeduct),'red')} ${ms('คงเหลือ',fmt(lc.remaining),lc.remaining>=0?'green':'red')}
+    </div>`
+}
+function ms(label, value, color) {
+  const c = color==='green'?'#059669':color==='red'?'#dc2626':'#1f2937'
+  return `<div style="background:#f9fafb;border-radius:10px;padding:9px 8px">
+    <div style="font-size:10px;color:#9ca3af;font-weight:600">${label}</div>
+    <div style="font-size:14px;font-weight:700;color:${c}">${value}</div></div>`
+}
+
+// =============================================
+//  NEW PERIOD FORM
+// =============================================
+function buildBetTable() {
+  const agents = APP.settings.agents || DEFAULT_AGENTS
+  document.getElementById('betBody').innerHTML = agents.map((a, i) => `
+    <tr>
+      <td class="agent-name">${a}</td>
+      <td><input class="bet-input" type="number" min="0" id="bet${i}" value="0" oninput="onBetChange(${i})"></td>
+      <td style="text-align:right;color:#9ca3af;font-size:13px" id="b75_${i}">0</td>
+      <td class="cell-72" id="b72_${i}">0</td>
+    </tr>`).join('')
+}
+
+function onBetChange(i) {
+  const v = +document.getElementById('bet'+i).value || 0
+  document.getElementById('b75_'+i).textContent = fmtN(v * 0.75)
+  document.getElementById('b72_'+i).textContent = fmtN(v * 0.72)
+  updateSummary()
+}
+
+function updateSummary() {
+  const agents = APP.settings.agents || DEFAULT_AGENTS
+  let totalBet = 0, total72 = 0
+  agents.forEach((_, i) => {
+    const v = +document.getElementById('bet'+i)?.value || 0
+    totalBet += v; total72 += v * 0.72
+  })
+  document.getElementById('totBet').textContent = fmtN(totalBet)
+  document.getElementById('tot75').textContent  = fmtN(totalBet * 0.75)
+  document.getElementById('tot72').textContent  = fmtN(total72)
+
+  const totalWin    = WIN_IDS.reduce((s,id) => s + (+document.getElementById(id)?.value||0), 0)
+  const totalDeduct = DED_IDS.reduce((s,id) => s + (+document.getElementById(id)?.value||0), 0)
+  const allDeduct   = totalWin + totalDeduct
+  const prevBal     = runningBalance()
+  const grandTotal  = prevBal + total72
+  const remaining   = grandTotal - allDeduct
+
+  document.getElementById('sOld').textContent       = fmt(prevBal)
+  document.getElementById('sNew').textContent       = fmt(total72)
+  document.getElementById('sGrand').textContent     = fmt(grandTotal)
+  document.getElementById('sWin').textContent       = fmt(totalWin)
+  document.getElementById('sDeduct').textContent    = fmt(totalDeduct)
+  document.getElementById('sAllDeduct').textContent = fmt(allDeduct)
+  const remEl = document.getElementById('sRemain')
+  remEl.textContent = fmt(remaining)
+  remEl.className   = 'val ' + (remaining >= 0 ? 'green' : 'red')
+}
+
+function resetNewForm() {
+  document.getElementById('newDate').value = ''
+  const agents = APP.settings.agents || DEFAULT_AGENTS
+  agents.forEach((_, i) => {
+    const el = document.getElementById('bet'+i); if (el) el.value = 0
+    const e75 = document.getElementById('b75_'+i); if (e75) e75.textContent = '0'
+    const e72 = document.getElementById('b72_'+i); if (e72) e72.textContent = '0'
+  })
+  ;[...WIN_IDS, ...DED_IDS].forEach(id => { const el = document.getElementById(id); if (el) el.value = 0 })
+  updateSummary()
+}
+
+async function savePeriod() {
+  const date = document.getElementById('newDate').value.trim()
+  if (!date) { alert('กรุณากรอกชื่องวดก่อน เช่น 16 มิย'); return }
+  if (!getApiUrl()) { alert('กรุณาตั้งค่า API URL ก่อนในหน้า ⚙️ ตั้งค่า'); return }
+
+  const agents = APP.settings.agents || DEFAULT_AGENTS
+  const bets = {}
+  agents.forEach((a, i) => { bets[a] = +document.getElementById('bet'+i)?.value || 0 })
+
+  const winTypes = {}
+  WIN_KEYS.forEach((k, i) => { winTypes[k] = +document.getElementById(WIN_IDS[i])?.value || 0 })
+
+  const deduct = {}
+  DED_KEYS.forEach((k, i) => { deduct[k] = +document.getElementById(DED_IDS[i])?.value || 0 })
+
+  const period = {
+    id: 'p-' + Date.now(),
+    date,
+    createdAt: new Date().toISOString(),
+    bets, winTypes, deduct,
+  }
+
+  const btn = document.getElementById('btnSave')
+  btn.disabled = true
+  showLoader('กำลังบันทึก...')
+  try {
+    await apiFetch('/api/periods', { method: 'POST', body: JSON.stringify(period) })
+    APP.periods.push(period)
+    resetNewForm()
+    alert('✅ บันทึกงวด ' + date + ' เรียบร้อย!')
+    await switchPage('History')
+  } catch (e) {
+    alert('เกิดข้อผิดพลาด: ' + e.message)
+  } finally {
+    btn.disabled = false
+    hideLoader()
+  }
+}
+
+// =============================================
+//  HISTORY
+// =============================================
+function renderHistory() {
+  const periods = APP.periods || []
+  const container = document.getElementById('histList')
+
+  if (periods.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div>ยังไม่มีประวัติงวด<br>กด "งวดใหม่" เพื่อเริ่มบันทึก</div></div>`
+    return
+  }
+
+  let prevBal = +APP.settings.initialBalance || 0
+  const rows = periods.map((p, i) => {
+    const c = calcPeriod(p, prevBal); prevBal = c.remaining
+    return { p, c, i }
+  }).reverse()
+
+  container.innerHTML = rows.map(({ p, c, i }) => `
+    <div class="period-card" onclick="showDetail(${i})">
+      <div>
+        <div class="period-date">งวด ${p.date}</div>
+        <div class="period-meta">รับ ${fmt(c.totalBet)} | 72% ${fmt(c.total72)} | หัก ${fmt(c.allDeduct)}</div>
+      </div>
+      <div class="period-right">
+        <div class="period-balance ${c.remaining<0?'red':''}">${fmt(c.remaining)}</div>
+        <div style="font-size:10px;color:#9ca3af">คงเหลือ</div>
+      </div>
+      <div class="period-arrow">›</div>
+    </div>`).join('')
+}
+
+function showDetail(idx) {
+  const p = APP.periods[idx]; if (!p) return
+  const prevBal = runningBalance(idx)
+  const c = calcPeriod(p, prevBal)
+  const agents = APP.settings.agents || DEFAULT_AGENTS
+
+  const betRows = agents.filter(a => (p.bets?.[a]||0) > 0).map(a => {
+    const v = +p.bets[a]
+    return `<tr><td>${a}</td><td>${fmtN(v*0.75)}</td><td>${fmtN(v*0.72)}</td><td>${fmtN(v)}</td></tr>`
+  }).join('') || `<tr><td colspan="4" style="color:#9ca3af;text-align:center">ไม่มีข้อมูล</td></tr>`
+
+  const winRows = WIN_KEYS.map(k => {
+    const v = +(p.winTypes?.[k]||0)
+    return v > 0 ? `<div class="sum-row"><span class="label">${k}</span><span class="val red">${fmt(v)}</span></div>` : ''
+  }).join('') || '<div style="color:#9ca3af;font-size:13px;padding:4px 0">ไม่มีตัวถูก</div>'
+
+  const dedRows = DED_KEYS.map(k => {
+    const v = +(p.deduct?.[k]||0)
+    return v > 0 ? `<div class="sum-row"><span class="label">${k}</span><span class="val red">${fmt(v)}</span></div>` : ''
+  }).join('')
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-title">งวด ${p.date}</div>
+    <div class="section-label">ยอดรับแต่ละคน</div>
+    <div class="table-scroll">
+      <table class="detail-table">
+        <thead><tr><th>ชื่อ</th><th>75%</th><th>72%</th><th>ยอดรับ</th></tr></thead>
+        <tbody>${betRows}</tbody>
+        <tr class="detail-total"><td>รวม</td><td>${fmtN(c.totalBet*0.75)}</td><td style="color:#059669">${fmtN(c.total72)}</td><td>${fmtN(c.totalBet)}</td></tr>
+      </table>
+    </div>
+    <div class="divider"></div>
+    <div class="section-label">ตัวถูก</div>${winRows}
+    <div class="divider"></div>
+    <div class="section-label">รายการหัก</div>
+    ${dedRows || '<div style="color:#9ca3af;font-size:13px;padding:4px 0">ไม่มีรายการหัก</div>'}
+    <div class="divider"></div>
+    <div class="live-summary" style="margin-top:0">
+      <div class="sum-row"><span class="label">ยอดเก่า</span><span class="val">${fmt(c.prevBalance)}</span></div>
+      <div class="sum-row"><span class="label">ยอดใหม่ (72%)</span><span class="val green">${fmt(c.total72)}</span></div>
+      <div class="sum-row"><span class="label">รวม</span><span class="val">${fmt(c.grandTotal)}</span></div>
+      <div class="sum-row divider-row"><span class="label">ตัวถูกรวม</span><span class="val red">${fmt(c.totalWin)}</span></div>
+      <div class="sum-row"><span class="label">หักค่าแรง/คืน/เบิก/อื่นๆ</span><span class="val red">${fmt(c.totalDeduct)}</span></div>
+      <div class="sum-row"><span class="label">หักทั้งหมด</span><span class="val red">${fmt(c.allDeduct)}</span></div>
+      <div class="sum-row total"><span class="label">คงเหลือ</span><span class="val ${c.remaining>=0?'green':'red'}">${fmt(c.remaining)}</span></div>
+    </div>
+    <div style="height:14px"></div>
+    <button class="btn btn-danger" onclick="deletePeriod(${idx})">🗑 ลบงวดนี้</button>`
+
+  document.getElementById('modalBd').classList.add('open')
+}
+
+async function deletePeriod(idx) {
+  if (!confirm('ลบงวดนี้หรือไม่?')) return
+  const p = APP.periods[idx]
+  showLoader('กำลังลบ...')
+  try {
+    await apiFetch('/api/periods/' + p.id, { method: 'DELETE' })
+    APP.periods.splice(idx, 1)
+    closeModal()
+    renderHistory()
+  } catch (e) {
+    alert('เกิดข้อผิดพลาด: ' + e.message)
+  } finally {
+    hideLoader()
+  }
+}
+
+function closeModal() { document.getElementById('modalBd').classList.remove('open') }
+function closeModalBg(e) { if (e.target === document.getElementById('modalBd')) closeModal() }
+
+// =============================================
+//  SETTINGS
+// =============================================
+function renderSettings() {
+  document.getElementById('sApiUrl').value  = getApiUrl()
+  document.getElementById('sInitBal').value = APP.settings.initialBalance || 0
+  renderChips()
+}
+
+async function testAndSaveApiUrl() {
+  const url = document.getElementById('sApiUrl').value.trim().replace(/\/$/, '')
+  if (!url) { alert('กรอก URL ก่อน'); return }
+  showLoader('กำลังทดสอบ...')
+  try {
+    const r = await fetch(url + '/api/data')
+    if (!r.ok) throw new Error('HTTP ' + r.status)
+    setApiUrl(url)
+    const data = await r.json()
+    APP.settings = data.settings
+    APP.periods  = data.periods
+    setSyncBadge(true)
+    document.getElementById('apiBanner').style.display = 'none'
+    alert('✅ เชื่อมต่อสำเร็จ!')
+    renderSettings()
+  } catch (e) {
+    alert('❌ เชื่อมต่อไม่ได้: ' + e.message)
+  } finally {
+    hideLoader()
+  }
+}
+
+async function saveSettingsToAPI() {
+  const initBal = parseFloat(document.getElementById('sInitBal').value) || 0
+  const agents  = APP.settings.agents || DEFAULT_AGENTS
+  showLoader('กำลังบันทึก...')
+  try {
+    await apiFetch('/api/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ agents, initialBalance: initBal }),
+    })
+    APP.settings.initialBalance = initBal
+    APP.settings.agents = agents
+    alert('✅ บันทึกเรียบร้อย')
+  } catch (e) {
+    alert('เกิดข้อผิดพลาด: ' + e.message)
+  } finally {
+    hideLoader()
+  }
+}
+
+function renderChips() {
+  const agents = APP.settings.agents || DEFAULT_AGENTS
+  document.getElementById('agentChips').innerHTML = agents.map((a, i) => `
+    <div class="agent-chip">${a}
+      <button class="chip-del" onclick="removeAgent(${i})">×</button>
+    </div>`).join('')
+}
+
+function addAgent() {
+  const name = document.getElementById('newAgentInput').value.trim()
+  if (!name) return
+  if (!APP.settings.agents.includes(name)) APP.settings.agents.push(name)
+  document.getElementById('newAgentInput').value = ''
+  renderChips()
+  buildBetTable()
+}
+
+function removeAgent(idx) {
+  if (APP.settings.agents.length <= 1) { alert('ต้องมี agent อย่างน้อย 1 คน'); return }
+  APP.settings.agents.splice(idx, 1)
+  renderChips()
+  buildBetTable()
+}
+
+// =============================================
+//  INIT
+// =============================================
+APP.apiUrl = getApiUrl()
+document.getElementById('newAgentInput').addEventListener('keydown', e => { if (e.key === 'Enter') addAgent() })
+
+// Load data on startup
+;(async () => {
+  if (getApiUrl()) {
+    await loadData()
+  } else {
+    document.getElementById('apiBanner').style.display = 'block'
+    document.getElementById('homeNote').textContent = 'ตั้งค่า API URL ก่อนนะครับ'
+  }
+  renderHome()
+  buildBetTable()
+  updateSummary()
+})()
+</script>
+</body>
+</html>
