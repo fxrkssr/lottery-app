@@ -385,6 +385,9 @@ let APP = {
 function getApiUrl() { return localStorage.getItem('lotto_api_url') || '' }
 function setApiUrl(u) { localStorage.setItem('lotto_api_url', u); APP.apiUrl = u; }
 
+function saveAgentsLocal(agents) { localStorage.setItem('lotto_agents', JSON.stringify(agents)) }
+function loadAgentsLocal() { try { const s = localStorage.getItem('lotto_agents'); return s ? JSON.parse(s) : null } catch { return null } }
+
 // =============================================
 //  LOADER
 // =============================================
@@ -421,10 +424,13 @@ async function loadData() {
     const data = await apiFetch('/api/data')
     APP.settings = data.settings
     APP.periods  = data.periods
+    saveAgentsLocal(APP.settings.agents)
     setSyncBadge(true)
   } catch (e) {
     console.error(e)
     setSyncBadge(false)
+    const localAgents = loadAgentsLocal()
+    if (localAgents) APP.settings.agents = localAgents
     if (!getApiUrl()) {
       document.getElementById('apiBanner').style.display = 'block'
     }
@@ -782,6 +788,7 @@ function addAgent() {
   if (!name) return
   if (!APP.settings.agents.includes(name)) APP.settings.agents.push(name)
   document.getElementById('newAgentInput').value = ''
+  saveAgentsLocal(APP.settings.agents)
   renderChips()
   buildBetTable()
 }
@@ -789,6 +796,7 @@ function addAgent() {
 function removeAgent(idx) {
   if (APP.settings.agents.length <= 1) { alert('ต้องมี agent อย่างน้อย 1 คน'); return }
   APP.settings.agents.splice(idx, 1)
+  saveAgentsLocal(APP.settings.agents)
   renderChips()
   buildBetTable()
 }
@@ -804,6 +812,8 @@ document.getElementById('newAgentInput').addEventListener('keydown', e => { if (
   if (getApiUrl()) {
     await loadData()
   } else {
+    const localAgents = loadAgentsLocal()
+    if (localAgents) APP.settings.agents = localAgents
     document.getElementById('apiBanner').style.display = 'block'
     document.getElementById('homeNote').textContent = 'ตั้งค่า API URL ก่อนนะครับ'
   }
